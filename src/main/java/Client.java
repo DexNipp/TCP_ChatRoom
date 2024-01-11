@@ -6,6 +6,8 @@ public class Client implements Runnable {
     private BufferedReader input;
     private PrintWriter output;
     private boolean done;
+
+//    private ChatRoom chatRoom;
     @Override
     public void run() {
         try {
@@ -38,6 +40,10 @@ public class Client implements Runnable {
             // ignore
         }
     }
+
+//    public void setChatRoom(ChatRoom chatRoom) {
+//        this.chatRoom = chatRoom;
+//    }
 
     class InputHandler implements Runnable {
         @Override

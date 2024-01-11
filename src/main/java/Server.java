@@ -13,6 +13,10 @@ public class Server implements Runnable {
     private ServerSocket server;
     private boolean done;
     private ExecutorService threadPool;
+
+//    private ChatRoom chatRoom;
+
+
     public Server() {
         connections = new ArrayList<>();
         done = false;
@@ -38,7 +42,7 @@ public class Server implements Runnable {
     public void broadcast(String message) {
         for (ConnectionHandler ch : connections) {
             if (ch != null) {
-                ch.sendMessage(message);
+                broadcast(message);
             }
         }
     }
@@ -56,11 +60,17 @@ public class Server implements Runnable {
         }
     }
 
+//    public void setChatRoom(ChatRoom chatRoom) {
+//        this.chatRoom = chatRoom;
+//    }
+
     class ConnectionHandler implements Runnable {
         private Socket client;
         private BufferedReader input;
         private PrintWriter output;
         private String nickname;
+
+        private ChatRoom chatRoom;
 
         public ConnectionHandler(Socket client) {
             this.client = client;
@@ -73,6 +83,7 @@ public class Server implements Runnable {
 
                 output.println("Enter a nickname: ");
                 nickname = input.readLine();
+                sendMessage(nickname + " has joined the chat.");
 
                 String message;
                 while ((message = input.readLine()) != null) {
