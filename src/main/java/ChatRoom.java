@@ -33,12 +33,7 @@ public class ChatRoom extends JFrame {
         inputField = new JTextField(25);
         JButton sendButton = new JButton("Send");
 
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                sendMessage();
-            }
-        });
+        sendButton.addActionListener(e -> sendMessage());
 
         inputField.addKeyListener(new KeyAdapter() {
             @Override
@@ -61,8 +56,6 @@ public class ChatRoom extends JFrame {
     }
 
     public void receiveMessage(String message) {
-        SwingUtilities.invokeLater(() -> {
-            chatArea.append(message + "\n");
-        });
+        SwingUtilities.invokeLater(() -> chatArea.append(message + "\n"));
     }
 }
