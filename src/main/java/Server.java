@@ -2,20 +2,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server implements Runnable {
-
-    private ArrayList<ConnectionHandler> connections;
+    private final ArrayList<ConnectionHandler> connections;
     private ServerSocket server;
     private boolean done;
     private ExecutorService threadPool;
-
-//    private ChatRoom chatRoom;
-
 
     public Server() {
         connections = new ArrayList<>();
@@ -42,7 +39,7 @@ public class Server implements Runnable {
     public void broadcast(String message) {
         for (ConnectionHandler ch : connections) {
             if (ch != null) {
-                broadcast(message);
+                ch.sendMessage(message);
             }
         }
     }
@@ -55,22 +52,15 @@ public class Server implements Runnable {
             for (ConnectionHandler ch : connections) {
                 ch.shutdown();
             }
-        } catch (IOException exception) {
-            // ignore
+        } catch (IOException ignore) {
+
         }
     }
 
-//    public void setChatRoom(ChatRoom chatRoom) {
-//        this.chatRoom = chatRoom;
-//    }
-
     class ConnectionHandler implements Runnable {
-        private Socket client;
+        private final Socket client;
         private BufferedReader input;
         private PrintWriter output;
-        private String nickname;
-
-        private ChatRoom chatRoom;
 
         public ConnectionHandler(Socket client) {
             this.client = client;
@@ -82,8 +72,8 @@ public class Server implements Runnable {
                 input = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
                 output.println("Enter a nickname: ");
-                nickname = input.readLine();
-                sendMessage(nickname + " has joined the chat.");
+                String nickname = input.readLine();
+                broadcast(nickname + " has joined the chat.");
 
                 String message;
                 while ((message = input.readLine()) != null) {
@@ -104,7 +94,6 @@ public class Server implements Runnable {
             } catch (IOException e) {
                 shutdown();
             }
-
         }
 
         public void sendMessage(String message) {
@@ -118,12 +107,11 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-            } catch (IOException ex) {
-                //ignore
+            } catch (IOException ignore) {
+
             }
         }
     }
-
     public static void main(String[] args) {
         Server server = new Server();
         server.run();

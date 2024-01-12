@@ -1,17 +1,21 @@
-import java.io.*;
-import java.net.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 public class Client implements Runnable {
     private Socket client;
     private BufferedReader input;
     private PrintWriter output;
     private boolean done;
+    private ChatRoom chatRoom;
 
-//    private ChatRoom chatRoom;
     @Override
     public void run() {
         try {
-            Socket client = new Socket("127.0.0.1", 5001);
+            client = new Socket("127.0.0.1", 5001);
             output = new PrintWriter(client.getOutputStream(), true);
             input = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
@@ -22,10 +26,15 @@ public class Client implements Runnable {
             String inputMessage;
             while ((inputMessage = input.readLine()) != null) {
                 System.out.println(inputMessage);
+                chatRoom.receiveMessage(inputMessage);
             }
         } catch (IOException ex) {
             shutdown();
         }
+    }
+
+    public void setChatRoom(ChatRoom chatRoom) {
+        this.chatRoom = chatRoom;
     }
 
     public void shutdown() {
@@ -36,37 +45,37 @@ public class Client implements Runnable {
             if (!client.isClosed()) {
                 client.close();
             }
-        } catch (IOException ex) {
-            // ignore
+        } catch (IOException ignore) {
+
         }
     }
-
-//    public void setChatRoom(ChatRoom chatRoom) {
-//        this.chatRoom = chatRoom;
-//    }
 
     class InputHandler implements Runnable {
         @Override
         public void run() {
             try {
-                BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
                 while (!done) {
-                    String message = inputReader.readLine();
-                    if (message.equals("/quit")) {
-                        inputReader.close();
-                        shutdown();
-                    } else {
-                        output.println(message);
+                    System.out.flush();
+                    if (!chatRoom.message.isEmpty()) {
+                        String message = chatRoom.message;
+                        if (message.equals("/quit")) {
+                            shutdown();
+                        } else {
+                            output.println(message); // Send message to the server
+                        }
                     }
+                    chatRoom.message = "";
                 }
-            } catch (IOException ex) {
+            } catch (Exception e) {
                 shutdown();
             }
         }
     }
-
     public static void main(String[] args) {
         Client client = new Client();
+        ChatRoom chatRoom = new ChatRoom();
+        client.setChatRoom(chatRoom);
+        chatRoom.startGUI();
         client.run();
     }
 }
